@@ -25,9 +25,10 @@ while True:
                 'created_at': status['created_at'],
                 'content': status['content'],
                 'account': status['account']['username'],
-                'url': status['url']
+                'tags': status['tags']
             }
             key = message['id']
+            key = key.encode('utf-8')
             
             # Envoie du message au topic spark sur kafka
             producer.send('spark', value=message, key=key)

@@ -11,11 +11,11 @@ df = spark.readStream.format("kafka").option("kafka.bootstrap.servers", "localho
 # Sélectionner la colonne value qui contient les données JSON de l'API Mastodon
 df = df.selectExpr("CAST(value AS STRING)")
 
-# Convertir les données JSON en colonnes Spark
-df = df.selectExpr("from_json(value, 'tags STRING, id STRING, content STRING, created_at TIMESTAMP') as data").select("data.*")
+# get tags and created_at from the json
+df = df.selectExpr("get_json_object(value, '$.tags') as tags", "get_json_object(value, '$.created_at') as created_at")
 
-# Filtrer les messages qui contiennent le hashtag #IA
-#df = df.filter(df.tag == "#IA")
-
+#  Keeping only rows with "ia" tag
+df = df.filter(df.tags.contains("ia"))
 
 df.writeStream.outputMode("append").format("console").start().awaitTermination()
+

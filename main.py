@@ -20,19 +20,18 @@ df = df.filter(df.tags.contains("ia"))
 df = df.withColumn("created_at", to_timestamp(df.created_at, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"))
 
 # On créer une fenêtre de 6 heures avec un chevauchement de 30 minutes
-window_spec = window(df.created_at, "6 hours")#, "30 minutes")
+window_spec = window(df.created_at, "6 hours", "30 minutes")
 
 # On ajoute les colonnes pour le début et la fin de la fenêtre
 df = df.withColumn("window_start", window_spec.start) \
        .withColumn("window_end", window_spec.end)
 
-df = df.groupBy("window_start", "window_end").count()
-
 dfWithWatermark = df.withWatermark("window_start", "6 hours")
 
-#df.writeStream.outputMode("append").format("console").start().awaitTermination()
+df = df.groupBy("window_start", "window_end").count()
 
-df.writeStream \
+
+dfWithWatermark.writeStream \
   .format("csv") \
   .trigger(processingTime="10 seconds") \
   .option("checkpointLocation", "checkpoint/") \

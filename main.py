@@ -32,6 +32,19 @@ dfWithWatermark = df.withWatermark("window_start", "6 hours")
 
 df_count = dfWithWatermark.groupBy("window_start", "window_end").agg(count("*").alias("count"))
 
+
+# Avant question bonus
+# df_count.writeStream \
+#   .format("csv") \
+#   .trigger(processingTime="10 seconds") \
+#   .option("checkpointLocation", "checkpoint/") \
+#   .option("path", "output_path/") \
+#   .outputMode("append")\
+#   .start()\
+#   .awaitTermination()
+
+
+# Question bonus
 # On commence le flux de streaming pendant une durée donnée
 query = df_count.writeStream \
   .format("memory") \

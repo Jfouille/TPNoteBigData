@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import window, to_timestamp
+from pyspark.sql.functions import window, to_timestamp, count
 
 spark = SparkSession.builder.appName("TP Final").config("spark.jars.packages","org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0").getOrCreate()
 
@@ -27,11 +27,11 @@ df = df.withColumn("window_start", window_spec.start) \
        .withColumn("window_end", window_spec.end)
 
 dfWithWatermark = df.withWatermark("window_start", "6 hours")
+ 
+df_count = dfWithWatermark.groupBy("window_start", "window_end").agg(count("*").alias("count"))
 
-df = df.groupBy("window_start", "window_end").count()
 
-
-dfWithWatermark.writeStream \
+df_count.writeStream \
   .format("csv") \
   .trigger(processingTime="10 seconds") \
   .option("checkpointLocation", "checkpoint/") \
